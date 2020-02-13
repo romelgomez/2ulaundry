@@ -2,6 +2,7 @@
   "name": "2ulaundry",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://romelgomez.github.io/2uAssessment",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
