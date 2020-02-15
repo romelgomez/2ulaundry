@@ -1,4 +1,4 @@
-export const environment = {
+const environment = {
   firebase: {
     apiKey: "AIzaSyBcAQUnpjDZElf9nZpqudNwBppcuj3xkfs",
     authDomain: "fire2ulaundry.firebaseapp.com",
@@ -10,3 +10,5 @@ export const environment = {
     measurementId: "G-7FWWWH0X45"
   }
 };
+
+export default environment;

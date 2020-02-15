@@ -1,20 +1,21 @@
-import React from 'react';
+// React | Antd | Verdors
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import {
   Table,
   Modal,
-  // Divider,
   Tag,
   Button
 } from 'antd';
+
+// Services
+import { invoicesFetch } from './invoices.service';
 
 // Styles
 import 'antd/es/table/style/css';
 import 'antd/es/tag/style/css';
 import 'antd/es/modal/style/css';
 
-// Fake
-import data from './fake_invoices';
 
 const { confirm } = Modal;
 
@@ -102,12 +103,22 @@ function showConfirm(invoiceNumber) {
 }
 
 function App() {
+  const [invoices, setInvoices] = useState([])
+
+  // componentDidMount
+  useEffect(() => {
+    invoicesFetch()
+      .then((invoicesList) => {
+        setInvoices(invoicesList);
+      })
+  }, [])
+
   return (
     <div className='App'>
       <h3 style={{ marginBottom: 16 }}>2ulaundry</h3>
       <Table
         rowKey={record => record.invoice_number}
-        dataSource={data
+        dataSource={invoices
           .filter(invoice => invoice.status === 'pending')
           .reverse()}
         columns={columns}
