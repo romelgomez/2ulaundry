@@ -1,31 +1,30 @@
 import firebase from './firebase';
 
-const invoicesRef = firebase.database().ref('invoices');
+/**
+ * Api doc ref: https://github.com/romelgomez/2ulaundry-functions
+ */
+const endpoint = 'https://us-central1-fire2ulaundry.cloudfunctions.net/invoices';
 
-export const invoicesFetch = () => {
-    return invoicesRef
-        .orderByChild('invoice_number')
-        .once('value')
-        .then((snapshot) => {
+/**
+ * Firebase invoices ref
+ */
+export const invoicesRef = firebase.database().ref('invoices');
 
-            var objects = snapshot.val();
-            var invoices = [];
+export const updateInvoiceStatus = (id, status) => {
 
-            for (var objID in objects) {
-                if (objects.hasOwnProperty(objID)) {
-                    invoices.push({
-                        ...objects[objID],
-                        objID: objID
-                    });
-                }
-            }
-
-            return invoices;
+    const options = {
+        method: 'PATCH',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json;charset=UTF-8'
+        },
+        body: JSON.stringify({
+            id: id,
+            status: status
         })
-        .catch((err) => {
-            console.error(err);
-            return [];
-        });
+    };
+
+    return fetch(endpoint, options);
 }
 
 export default invoicesRef;

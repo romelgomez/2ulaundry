@@ -5,16 +5,18 @@ import {
   Table,
   Modal,
   Tag,
-  Button
+  Button,
+  notification
 } from 'antd';
 
 // Services
-import { invoicesFetch } from './invoices.service';
+import { invoicesRef, updateInvoiceStatus } from './invoices.service';
 
 // Styles
 import 'antd/es/table/style/css';
 import 'antd/es/tag/style/css';
 import 'antd/es/modal/style/css';
+import 'antd/es/notification/style/css';
 
 
 const { confirm } = Modal;
@@ -69,29 +71,40 @@ const columns = [
     render: (_, record) => {
       return (
         <span>
-          <Button onClick={showConfirm(record.invoice_number)}>Approve</Button>
+          <Button onClick={showConfirm(record)}>Approve</Button>
         </span>
       );
     }
   }
 ];
 
+const openNotificationWithIcon = (type, invoice) => {
+  notification[type]({
+    message: 'DONE',
+    description: `The invoce #${invoice.invoice_number} was Approved!`,
+  });
+};
+
 /**
  * showConfirm function is a closure that return a function that open an modal to Approve the invoice.
- * @param {string} invoiceNumber
  */
-function showConfirm(invoiceNumber) {
+function showConfirm(invoice) {
   return () => {
     confirm({
-      title: 'Do you want to Approve this Invoice?',
+      title: `Do you want to Approve the invoice #${invoice.invoice_number}?`,
       content: 'This action can\'t be rollback',
       onOk() {
         return new Promise((resolve, reject) => {
-          // TODO: Call the service
-          console.log('Call the service', invoiceNumber);
 
-          // This randomly will fail
-          setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+          updateInvoiceStatus(invoice.objID, 'Approved')
+            .then(() => {
+              openNotificationWithIcon('success', invoice);
+              resolve();
+            })
+            .catch((reason) => {
+              reject(reason);
+            });
+
         }).catch(err => {
           console.error('err', err);
           // TODO: Show ERROR MESSAGE
@@ -103,21 +116,41 @@ function showConfirm(invoiceNumber) {
 }
 
 function App() {
-  const [invoices, setInvoices] = useState([])
+  const [invoices, setInvoices] = useState([]);
 
   // componentDidMount
   useEffect(() => {
-    invoicesFetch()
-      .then((invoicesList) => {
-        setInvoices(invoicesList);
-      })
-  }, [])
+
+    invoicesRef
+      .on('value', (snapshot) => {
+
+        var objects = snapshot.val();
+        var invoices = [];
+
+        for (var objID in objects) {
+          if (objects.hasOwnProperty(objID)) {
+            invoices.push({
+              ...objects[objID],
+              objID: objID
+            });
+          }
+        }
+
+        setInvoices(invoices);
+      });
+
+    return () => {
+      // UNMOUNTED
+      invoicesRef.off();
+    };
+
+  }, []);
 
   return (
     <div className='App'>
       <h3 style={{ marginBottom: 16 }}>2ulaundry</h3>
       <Table
-        rowKey={record => record.invoice_number}
+        rowKey={record => record.objID}
         dataSource={invoices
           .filter(invoice => invoice.status === 'pending')
           .reverse()}
